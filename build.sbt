@@ -6,6 +6,8 @@ version := "0.0.1"
 
 crossScalaVersions := Seq("2.9.1")
 
+mainClass := Some("Fureteur")
+
 resolvers += "Twitter Repository" at "http://maven.twttr.com"
 
 resolvers += "Akka Maven" at "http://akka.io/repository"

@@ -13,7 +13,7 @@ class fileBatchWriteback(fname: String) extends genericBatchReseller[Data] {
 
   def resell(batch: List[Data]) = {
     batch match {
-      case x::xs => { file.write(x.toJSON+"\n"); resell(xs) }
+      case x::xs => { val s= x.toJSON+"\n"; file.write(s); println(s); resell(xs) }
       case Nil => 
     }
   }

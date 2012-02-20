@@ -25,7 +25,7 @@ class Data(m:HashMap[String,String]) {
   def toJSON():String = {
     val s= ""
     val q= "\""
-    map.foldLeft(s)( ((ss,kv)=> (if(ss=="") { "{" } else { "," })+q+kv._1+q+":"+q+kv._2+q+"," ) )+"}"
+    map.foldLeft(s)( ((ss,kv)=> (if(ss=="") { "{" } else { ss+"," })+q+kv._1+q+":"+q+kv._2+q ) )+"}"
   }
 }
 

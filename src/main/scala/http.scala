@@ -68,8 +68,10 @@ class HttpFetcher(thres_in: Int,
   
   def process(x:Data):Data ={
     Thread.sleep(interval)
+    val url= x get "URL"
     val t0= Time.msNow
-    val get= new HttpGet(x get "URL")
+    val get= new HttpGet(url)
+    println("Processing "+url)
     val ctx= new BasicHttpContext()  // Can this be re-used?
     val res= client.execute(get, ctx)
     val entity= res.getEntity()

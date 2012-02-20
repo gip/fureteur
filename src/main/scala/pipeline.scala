@@ -11,9 +11,9 @@ import fureteur.prefetch._
 import fureteur.http._
 
 
-class Pipeline(nclients:Int) {
-  val prefetch= actorOf( new fileBatchPrefetcher( "li_50k_rev", 50, 3, Some(1000L) ) )
-  val wb= actorOf( new fileBatchWriteback( "result" ) )
+class Pipeline(nclients:Int, fin:String, fout:String) {
+  val prefetch= actorOf( new fileBatchPrefetcher( fin, 50, 3, Some(1000L) ) )
+  val wb= actorOf( new fileBatchWriteback( fout ) )
   val mng= new HttpManager
   val clients= makeClients(nclients)
   
@@ -37,9 +37,6 @@ class Pipeline(nclients:Int) {
     actorOf( new HttpFetcher(10, 50, prefetch, wb, Some(1000L), mng) )
   }
   
-  def main() = {
-    
-  }
 }
 
 
