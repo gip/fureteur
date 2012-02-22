@@ -3,25 +3,25 @@
 
 package fureteur.amqpio
 
+import akka.event.EventHandler
 import com.rabbitmq.client._
 
 import fureteur.config._
 import fureteur.data._
 import fureteur.sync._
-
+import fureteur.control._
 
 // Prefetching an AMQP queue
 //
 class amqpBatchPrefetcher(size:Int, 
                           thres:Int, 
                           timeout: Option[Long],
-                          cfg: Config) 
-      extends genericBatchProducer[Data](size, thres, timeout) {
+                          cfg: Config,
+                          control: Control) 
+      extends genericBatchProducer[Data](size, thres, timeout, control) {
   
   val config= cfg
-  val factory= new ConnectionFactory() // This will come from the config 
-  val conn= factory.newConnection()
-  val chan= conn.createChannel()
+  val chan= config.channel
   val queue= "rgFetchInLinkedin"
   
   override def init() = {
@@ -36,6 +36,7 @@ class amqpBatchPrefetcher(size:Int,
     if (null==response) { throw new EmptyQueue }
     val ra= response.getBody()
     val deliveryTag= response.getEnvelope().getDeliveryTag()
+    EventHandler.info(this, "Fetched message from '"+queue+"' with delivery tag "+deliveryTag)
     val d= Data.fromBytes(ra)
     d add ("fetch_in_delivery_tag", deliveryTag.toString)
   }
@@ -53,19 +54,19 @@ class amqpBatchPrefetcher(size:Int,
 
 // Writing back to an AMQP exchange
 //
-class amqpBatchWriteback(cfg: Config) extends genericBatchReseller[Data] {
+class amqpBatchWriteback(cfg: Config, control: Control) extends genericBatchReseller[Data](control) {
 
   val config= cfg
-  val factory= new ConnectionFactory() // This will come from the config 
-  val conn= factory.newConnection()
-  val chan= conn.createChannel()
+  val chan= config.channel
   val exch= "rgFetchOut"
 
   def resell(batch: List[Data]) = {  
     batch match {
       case x::xs => {
+	    val deliveryTag= (x get "fetch_in_delivery_tag").toLong
         chan.basicPublish(exch, "", null, x.toBytes)
-        chan.basicAck((x get "fetch_in_delivery_tag") toLong, false)
+        chan.basicAck(deliveryTag, false)
+        EventHandler.info(this, "Publishing message to '"+exch+"' with delivery tag "+deliveryTag)
         resell(xs) 
       }
       case Nil => ()

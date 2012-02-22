@@ -2,6 +2,6 @@
 
 package fureteur.config
 
+import com.rabbitmq.client._
 
-class Config {
-}
+case class Config(channel:Channel, limit: Int)

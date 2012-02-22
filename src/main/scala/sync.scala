@@ -11,6 +11,7 @@ import akka.actor._
 import akka.actor.Actor._
 import akka.event.EventHandler
 import fureteur.collection.FIFO
+import fureteur.control.Control
 
 
 
@@ -101,9 +102,10 @@ abstract class genericProcessor[T,U] (thres_in: Int,             // Input thresh
 
 // Generic producer base class (working in batches)
 //
-abstract class genericBatchProducer[T] (size:Int,          // Size of a batch
-                                        thres: Int,        // Treshold (expressed in number of batches)
-                                        timeout: Option[Long]
+abstract class genericBatchProducer[T] (size:Int,              // Size of a batch
+                                        thres: Int,            // Treshold (expressed in number of batches)
+                                        timeout: Option[Long], // Timeout in ms
+                                        control: Control       // Control class
                                        ) extends Actor {
   self.receiveTimeout = timeout
   var timeouts= 0
@@ -128,6 +130,7 @@ abstract class genericBatchProducer[T] (size:Int,          // Size of a batch
   }
   
   def handleRequests(): Unit = {
+	if(!control.acceptInput()) { return }
     (fifo.isEmpty, reqfifo.isEmpty) match {
       case (false, false) => { batches_sent+= 1; reqfifo.pop ! DataIn(self, fifo.pop); handleRequests() }
       case (true,  false) => { singleRequest(0); if(!fifo.isEmpty) { handleRequests() } }
@@ -142,7 +145,7 @@ abstract class genericBatchProducer[T] (size:Int,          // Size of a batch
   
   def requestBatch(): Boolean = {
     getBatch(size) match {
-      case Some(l:List[T]) => { fifo push l; return true }
+      case Some(l:List[T]) => { fifo push l; control.addCounter(l.length); return true }
       case None => { return false; } 
     } 
   }
@@ -158,11 +161,11 @@ abstract class genericBatchProducer[T] (size:Int,          // Size of a batch
 
 // Generic batch reseller
 //
-abstract class genericBatchReseller[T] extends Actor {
+abstract class genericBatchReseller[T](control: Control) extends Actor {
   var c=0
   
   def receive = {
-    case DataOut(req, out:List[T]) => { c+= out.length; resell(out) }
+    case DataOut(req, out:List[T]) => { val sz= out.length; c+= sz; resell(out); control.subCounter(sz) }
     case StatsReq(handler) => handler(stats())
     case _ => EventHandler.info(this, "received unknown message")
   }
@@ -180,7 +183,7 @@ abstract class genericBatchReseller[T] extends Actor {
 
 
 // Test
-
+/*
 class testProducer extends Actor {
   var n=0
   
@@ -256,3 +259,4 @@ class testAll {
   actorOf(new Cron(List(pp1, pp2, pp3, pp4)) ).start
 }
 
+*/
