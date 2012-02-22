@@ -27,8 +27,17 @@ class Data(m:HashMap[String,String]) {
     val q= "\""
     map.foldLeft(s)( ((ss,kv)=> (if(ss=="") { "{" } else { ss+"," })+q+kv._1+q+":"+q+kv._2+q ) )+"}"
   }
+
+  def toBytes(): Array[Byte] = {
+    toJSON().getBytes()
+  }
+  
 }
 
 object Data {
   def empty(): Data = { new Data(scala.collection.immutable.HashMap.empty) }
+  
+  def fromBytes(a: Array[Byte]): Data = {
+    empty // Change this!
+  }
 }

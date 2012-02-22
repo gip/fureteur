@@ -136,6 +136,7 @@ abstract class genericBatchProducer[T] (size:Int,          // Size of a batch
   }
 
   override def preStart() = {
+    init()
     multiRequest()
   }
   
@@ -152,6 +153,7 @@ abstract class genericBatchProducer[T] (size:Int,          // Size of a batch
   
   def getBatch(n:Int): Option[List[T]] // This function MUST not block
   def getStats(): List[(String,String)] = { List() }
+  def init() = {}
 }
 
 // Generic batch reseller
