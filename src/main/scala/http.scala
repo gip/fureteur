@@ -19,6 +19,7 @@ import org.apache.http.impl.conn._
 import org.apache.http.conn._
 import org.apache.http.conn.params._
 import org.apache.http.client.methods._
+import org.apache.http.client.params._
 import org.apache.http.util._
 import org.apache.http.conn.routing._
 import org.apache.http.protocol._
@@ -28,6 +29,7 @@ import fureteur.sync._
 import fureteur.time._
 import fureteur.encoding._
 import fureteur.data._
+import fureteur.dummyssl._
 
 
 class HttpManager {
@@ -43,7 +45,8 @@ class HttpManager {
 
 object HttpManager {
     val http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
-    val https = new Scheme("https", 443, PlainSocketFactory.getSocketFactory());
+    val ssf = DummySSLScheme.getDummySSLScheme();
+    val https = new Scheme("https", 443, ssf);
     val sr = new SchemeRegistry();
     sr.register(http);
     sr.register(https);
@@ -51,6 +54,7 @@ object HttpManager {
     cm.setMaxTotal(2);
     cm.setDefaultMaxPerRoute(2);
     val client = new DefaultHttpClient(cm);
+    client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
 }
 
 class HttpFetcher(thres_in: Int,
@@ -65,7 +69,9 @@ class HttpFetcher(thres_in: Int,
   HttpFetcher.iid+= 1
   val client= manager.getClient
   val interval= manager.getMinInterval
+  var last_fetch_ms= 0L
   
+
   def process(x:Data):Data ={
     Thread.sleep(interval)
     val url= x get "fetch_url"
@@ -83,7 +89,8 @@ class HttpFetcher(thres_in: Int,
     // TODO
     EntityUtils.consume(entity)
     val t1= Time.msNow
-    
+    last_fetch_ms= t1
+
     var y= x add ("fetch_time", Time.sNow.toString)
     y= y add ("fetch_latency", (t1-t0).toString)
     y= y add ("fetch_size", page.length.toString)

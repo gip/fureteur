@@ -130,7 +130,7 @@ abstract class genericBatchProducer[T] (size:Int,              // Size of a batc
   }
   
   def handleRequests(): Unit = {
-	if(!control.acceptInput()) { return }
+	// if(!control.acceptInput()) { return }
     (fifo.isEmpty, reqfifo.isEmpty) match {
       case (false, false) => { batches_sent+= 1; reqfifo.pop ! DataIn(self, fifo.pop); handleRequests() }
       case (true,  false) => { singleRequest(0); if(!fifo.isEmpty) { handleRequests() } }
@@ -178,85 +178,3 @@ abstract class genericBatchReseller[T](control: Control) extends Actor {
   def getStats(): List[(String,String)] = { List() }
 }
 
-
-
-
-
-// Test
-/*
-class testProducer extends Actor {
-  var n=0
-  
-  def next(): List[String] ={
-    n+= 5
-    List(n-5, n-4, n-3, n-2, n-1) map (""+_)
-  }
-  
-  def receive = {
-    case DataReq(req, n) => req ! DataIn(self, next)
-    case _ => EventHandler.info(this, "received unknown message")
-  }
-}
-
-
-class testBatchProducer(size:Int, thres:Int, timeout: Option[Long]) extends genericBatchProducer[String](size, thres, timeout) {
-
-  val data= scala.io.Source.fromFile("li_50k_rev").getLines.toArray
-  var index= 0
-  
-  override def getBatch(sz:Int):Option[List[String]] = {
-    if(index>data.size) { return None }
-    index+= sz
-    print(".")
-    Some( data.slice(index-sz, index).toList )
-  }
-}
-
-
-class testReseller extends Actor {
-  var c=0
-  var cc= 0
-  def receive = {
-    case DataOut(req, out) => { c+= out.length; if(c/1000>cc) { println("Received "+c); cc= c/1000 } }   //println("From "+req.id+" got "+out)
-    case 0 => println("Got "+c)
-    case _ => EventHandler.info(this, "received unknown message")
-  }
-}
-
-class testProcessor(thres_in: Int,
-                                      thres_out: Int,
-                                      producer: ActorRef, 
-                                     reseller: ActorRef, s:Int, timeout:Option[Long]) 
-                            extends genericProcessor[String,String](thres_in, thres_out, producer, reseller, timeout) {
-  import testProcessor._
-  self.id= "processor-"+iid
-  iid+= 1                     
-  def process(x:String):String ={ Thread.sleep(s); return "done "+x; }                                
-                                                                   
-}
-
-object testProcessor {
-  var iid= 0;
-}
-
-class Cron(a: List[ActorRef]) extends Actor {
-
-  self.receiveTimeout = Some(10000L)
-  
-  def receive() = {
-    case ReceiveTimeout => { a map ( _ ! StatsReq( ((l:List[(String,String)]) => { println(l); scala.Console.out.flush() } )) ) }
-  }
-
-}
-
-class testAll {
-  val p= actorOf(new testBatchProducer(50, 3, Some(500L))).start
-  val r= actorOf(new testReseller).start
-  val pp1= actorOf(new testProcessor(10, 50, p, r, 1, Some(1000L))).start
-  val pp2= actorOf(new testProcessor(10, 50, p, r, 2, Some(1000L))).start
-  val pp3= actorOf(new testProcessor(10, 50, p, r, 3, Some(1000L))).start
-  val pp4= actorOf(new testProcessor(10, 50, p, r, 4, Some(1000L))).start
-  actorOf(new Cron(List(pp1, pp2, pp3, pp4)) ).start
-}
-
-*/

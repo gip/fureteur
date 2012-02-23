@@ -17,6 +17,10 @@ class Data(m:Map[String, JValue]) {
     new Data( map + (k->JString(v)) )
   }
 
+  def addn(kvs:List[(String, String)]) = {
+	new Data( map ++ (kvs.map ( (kv) => (kv._1 -> JString(kv._2)) ) ) )
+  }
+
   def get(s:String):String = {
     map(s) match {
 	  case JString(s) => s

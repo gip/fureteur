@@ -16,12 +16,10 @@ import fureteur.control._
 class amqpBatchPrefetcher(size:Int, 
                           thres:Int, 
                           timeout: Option[Long],
-                          cfg: Config,
+                          chan: Channel,
                           control: Control) 
       extends genericBatchProducer[Data](size, thres, timeout, control) {
   
-  val config= cfg
-  val chan= config.channel
   val queue= "rgFetchInLinkedin"
   
   override def init() = {
@@ -46,6 +44,8 @@ class amqpBatchPrefetcher(size:Int,
     def rec(c:Int, l:List[Data]):List[Data] = { try { if(0==c) { l } else { rec(c-1, getMessage()::l ) } } catch { case e:EmptyQueue => l} }
     
     val l= rec(sz, List[Data]())
+    val ls= l.length
+    if(ls>0) { EventHandler.info(this, "Fetched "+ls.toString+" message(s) from "+queue) }
     if(l isEmpty) { None } else { return Some(l) }
   }
   
@@ -54,10 +54,8 @@ class amqpBatchPrefetcher(size:Int,
 
 // Writing back to an AMQP exchange
 //
-class amqpBatchWriteback(cfg: Config, control: Control) extends genericBatchReseller[Data](control) {
+class amqpBatchWriteback(chan: Channel, control: Control) extends genericBatchReseller[Data](control) {
 
-  val config= cfg
-  val chan= config.channel
   val exch= "rgFetchOut"
 
   def resell(batch: List[Data]) = {  
