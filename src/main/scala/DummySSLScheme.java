@@ -1,5 +1,7 @@
-// Dummy Socket factory for SSL
-//
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
+
 package fureteur.dummyssl;
 
 import javax.net.ssl.*;

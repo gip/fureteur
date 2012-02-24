@@ -1,4 +1,6 @@
-
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
 
 package fureteur.config
 
@@ -19,20 +21,20 @@ class Config(d:Data) {
   }
 
   def getOption(s:String) = {
-	data getOption s
+    data getOption s
   }
 
   def getLongOption(s:String) = {
-	(data getOption s) match { 
+    (data getOption s) match { 
       case Some(s) => Some(s.toLong) 
       case _ => None
-	}
+    }
   }
 
   def getObject(s:String):Config = { new Config(data.getObject(s)) }
 
   def unwrapArray(s:String):List[Config] = {
-	(data unwrapArray s) map (new Config(_))
+    (data unwrapArray s) map (new Config(_))
   }
 
 }
@@ -41,9 +43,9 @@ object Config {
 
   val configs = new HashMap[String, (String, Config)]()
 
-  def registerConfig(s:String):Unit = {
-	val c= Config.fromJson(s)
-    configs+= (c("conf") -> (s,c))
+  def registerConfig(s:String, s0:String):Unit = {
+    val c= Config.fromJson(s)
+    configs+= (c("conf") -> (s0,c))
   }
 
   def getConfig(s:String) = {
@@ -51,15 +53,15 @@ object Config {
   }
 
   def dumpConfig(s:String) = {
-    configs(s)._1	
+    configs(s)._1   
   }
 
   def fromJson(s:String) = {
-	new Config( Data.fromJson(s) )
+    new Config( Data.fromJson(s) )
   }
 
   def showConfigs() ={
-	configs.toList.map ( kkv => (kkv._1,kkv._2._2("description") ) )
+    configs.toList.map ( kkv => (kkv._1,kkv._2._2("description") ) )
   }
 
 }

@@ -1,5 +1,6 @@
-// IO to AMQP (e.g. RabbitMQ)
-//
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
 
 package fureteur.amqpio
 
@@ -60,7 +61,7 @@ class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extend
   def resell(batch: List[Data]) = {  
     batch match {
       case x::xs => {
-	    val deliveryTag= (x get "fetch_in_delivery_tag").toLong
+        val deliveryTag= (x get "fetch_in_delivery_tag").toLong
         chan.basicPublish(exch, "", null, x.toBytes)
         chan.basicAck(deliveryTag, false)
         EventHandler.info(this, "Publishing message to '"+exch+"' with delivery tag "+deliveryTag)

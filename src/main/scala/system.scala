@@ -1,5 +1,6 @@
-// Build the system
-//
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
 
 package fureteur.pipeline
 
@@ -34,8 +35,8 @@ class Pipeline(config:Config, control:Control) {
 
 
   val amqpConnection= try { newAmqpConnection(config.getObject("amqp")) }
-	                  catch { case _:java.lang.ArrayIndexOutOfBoundsException
-		                         | _:java.util.NoSuchElementException => null }
+                      catch { case _:java.lang.ArrayIndexOutOfBoundsException
+                                 | _:java.util.NoSuchElementException => null }
 
   val prefetch= newPrefetcher(config.getObject("prefetcher"))
 
@@ -58,30 +59,30 @@ class Pipeline(config:Config, control:Control) {
   }
 
   def newPrefetcher(config:Config):ActorRef = {
-	 config("class") match {
-	    case "fileBatchPrefetcher" => actorOf( new fileBatchPrefetcher( config, control ) )
-	    case "amqpBatchPrefetcher" => actorOf( new amqpBatchPrefetcher( config, control, amqpConnection._2 ) )
-	    case (e:String) => throw (new ClassNotFound(e))
-	  }
+     config("class") match {
+        case "fileBatchPrefetcher" => actorOf( new fileBatchPrefetcher( config, control ) )
+        case "amqpBatchPrefetcher" => actorOf( new amqpBatchPrefetcher( config, control, amqpConnection._2 ) )
+        case (e:String) => throw (new ClassNotFound(e))
+      }
   }
 
   def  newWriteback(config:Config):ActorRef = {
-	 config("class") match {
-	    case "fileBatchWriteback" => actorOf( new fileBatchWriteback( config, control ) )
-	    case "amqpBatchWriteback" =>  actorOf( new amqpBatchWriteback( config, control, amqpConnection._2 ) )
-	    case (e:String) => throw (new ClassNotFound(e))
-	  }
+     config("class") match {
+        case "fileBatchWriteback" => actorOf( new fileBatchWriteback( config, control ) )
+        case "amqpBatchWriteback" =>  actorOf( new amqpBatchWriteback( config, control, amqpConnection._2 ) )
+        case (e:String) => throw (new ClassNotFound(e))
+      }
   }
 
   def newAmqpConnection(config:Config) = {
-	println("Creating AMQP connection")
+    println("Creating AMQP connection")
     import com.rabbitmq.client._
-	val factory= new ConnectionFactory() // This will come from the config 
-	val conn= factory.newConnection()
-	val chan= conn.createChannel()
-	println(conn)
-	println(chan)
-	(conn, chan)
+    val factory= new ConnectionFactory() // This will come from the config 
+    val conn= factory.newConnection()
+    val chan= conn.createChannel()
+    println(conn)
+    println(chan)
+    (conn, chan)
   }
 
 }

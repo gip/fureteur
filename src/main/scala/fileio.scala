@@ -1,4 +1,6 @@
-
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
 
 package fureteur.fileio
 
@@ -26,7 +28,7 @@ class fileBatchPrefetcher(config: Config, control: Control)
     index+= sz
     batch+= 1
     val l= data.slice(index-sz, index).toList
-    EventHandler.info(this, "Fetched "+l.length.toString+" message(s) from "+file)
+    EventHandler.info(this, "Fetched "+l.length.toString+" entrie(s) from "+file)
     val d= Data.empty
     Some( l map (e => d addn List(("fetch_url", e),("batch", batch.toString)) )  )
   }
@@ -40,10 +42,14 @@ class fileBatchWriteback(config: Config, control: Control) extends genericBatchR
   val file = new java.io.FileWriter(fname)
 
   def resell(batch: List[Data]) = {
-    batch match {
-      case x::xs => { val s= x.toJson+"\n"; file.write(s); resell(xs) }
-      case Nil => 
+    EventHandler.info(this, "Writing "+batch.length.toString+" entrie(s) to "+file)
+    def doit(b:List[Data]):Unit = {
+      b match {
+        case x::xs => { val s= x.toJson+"\n"; file.write(s); doit(xs) }
+        case Nil => 
+      }
     }
+    doit(batch)
   }
 
 }

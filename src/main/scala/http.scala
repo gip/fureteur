@@ -1,8 +1,8 @@
-//
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
 
 package fureteur.http
-
-
 
 import java.io._
 import java.util.concurrent.TimeUnit

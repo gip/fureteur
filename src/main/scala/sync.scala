@@ -1,8 +1,6 @@
-//
-// Fureteur
-//
-// Synchronization objects
-//
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
 
 package fureteur.sync
 
@@ -12,8 +10,6 @@ import akka.actor.Actor._
 import akka.event.EventHandler
 import fureteur.collection.FIFO
 import fureteur.control.Control
-
-
 
 // Control messages
 abstract class Ctrl
@@ -130,7 +126,7 @@ abstract class genericBatchProducer[T] (size:Int,              // Size of a batc
   }
   
   def handleRequests(): Unit = {
-	// if(!control.acceptInput()) { return }
+    // if(!control.acceptInput()) { return }
     (fifo.isEmpty, reqfifo.isEmpty) match {
       case (false, false) => { batches_sent+= 1; reqfifo.pop ! DataIn(self, fifo.pop); handleRequests() }
       case (true,  false) => { singleRequest(0); if(!fifo.isEmpty) { handleRequests() } }

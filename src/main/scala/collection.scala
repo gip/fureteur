@@ -1,7 +1,7 @@
-// 
-// Collections
-//
-// 
+// /////////////////////////////////////////// //
+// Fureteur - https://github.com/gip/fureteur  //
+// /////////////////////////////////////////// //
+
 package fureteur.collection
 
 import scala.collection.mutable.Queue
