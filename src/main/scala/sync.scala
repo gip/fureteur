@@ -49,7 +49,7 @@ abstract class genericProcessor[T,U] (thres_in: Int,             // Input thresh
   }
     
   def receive = {
-    case DataIn(_, elems: List[T]) => { fifo pushn elems; processShift(); }
+    case DataIn(_, elems: List[T]) => { fifo pushn elems; processShift() }
     case StatsReq(handler) => handler(stats())
     case ReceiveTimeout => { processShift() }
     case _ => EventHandler.info(this, "received unknown message")

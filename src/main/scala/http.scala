@@ -69,41 +69,40 @@ class HttpFetcher(config: Config,
   var last_fetch_ms= 0L
   
 
-  def process(x:Data):Data ={
-    Thread.sleep(interval)
-    val url= x get "fetch_url"
-    val t0= Time.msNow
-    val get= new HttpGet(url)
-    EventHandler.info(this, "Fetching "+url)
-    val ctx= new BasicHttpContext()  // Can this be re-used?
-    val res= client.execute(get, ctx)
-    val entity= res.getEntity()
-    val page= EntityUtils.toByteArray(entity)
-    val zpage= Encoding.byteToZippedString64(page)
-    val status= res.getStatusLine()
-    val code= status.getStatusCode()
+  def process(d:Data):Data = {
+    var x= d
+	try {
+      Thread.sleep(interval)
+      val url= d get "fetch_url"
+      val t0= Time.msNow
+      val get= new HttpGet(url)
+      EventHandler.info(this, "Fetching "+url)
+      val ctx= new BasicHttpContext()  // Can this be re-used?
+      val res= client.execute(get, ctx)
+      val entity= res.getEntity()
+      val page= EntityUtils.toByteArray(entity)
+      val zpage= Encoding.byteToZippedString64(page)
+      val status= res.getStatusLine()
+      val code= status.getStatusCode()
     
-    // TODO
-    EntityUtils.consume(entity)
-    val t1= Time.msNow
-    last_fetch_ms= t1
+      EntityUtils.consume(entity)
+      val t1= Time.msNow
+      last_fetch_ms= t1
 
-    var y= x add ("fetch_time", Time.sNow.toString)
-    y= y add ("fetch_latency", (t1-t0).toString)
-    y= y add ("fetch_size", page.length.toString)
-    y= y add ("fetch_data", zpage)
-    y= y add ("fetch_status_code", code.toString)
-    y= y add ("fetch_status_line", status.toString)
-    y
+      x= x add ("fetch_time", Time.sNow.toString)
+      x= x add ("fetch_latency", (t1-t0).toString)
+      x= x add ("fetch_size", page.length.toString)
+      x= x add ("fetch_data", zpage)
+      x= x add ("fetch_status_code", code.toString)
+      x= x add ("fetch_status_line", status.toString)
+      x= x add ("fetch_error", "false")
+    } catch {
+	  case e:Exception => x = (x add ("fetch_error", "true")) add ("fetch_error_reason", "exception")
+	}
+	x
   }                                                                   
-
 }
 
 object HttpFetcher {
   var iid= 0;
 }
-
-
-
-
-
