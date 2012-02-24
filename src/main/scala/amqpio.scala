@@ -10,17 +10,16 @@ import fureteur.config._
 import fureteur.data._
 import fureteur.sync._
 import fureteur.control._
+import fureteur.config._
 
 // Prefetching an AMQP queue
 //
-class amqpBatchPrefetcher(size:Int, 
-                          thres:Int, 
-                          timeout: Option[Long],
-                          chan: Channel,
-                          control: Control) 
-      extends genericBatchProducer[Data](size, thres, timeout, control) {
+class amqpBatchPrefetcher(config: Config,
+                          control: Control,
+                          chan: Channel) 
+      extends genericBatchProducer[Data](config.getInt("batch_size"), config.getInt("threshold_in_batches"), config.getLongOption("timeout_ms"), control) {
   
-  val queue= "rgFetchInLinkedin"
+  val queue= config("queue")
   
   override def init() = {
     // InitAMPQ
@@ -54,9 +53,9 @@ class amqpBatchPrefetcher(size:Int,
 
 // Writing back to an AMQP exchange
 //
-class amqpBatchWriteback(chan: Channel, control: Control) extends genericBatchReseller[Data](control) {
+class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extends genericBatchReseller[Data](control) {
 
-  val exch= "rgFetchOut"
+  val exch= config("exchange")
 
   def resell(batch: List[Data]) = {  
     batch match {

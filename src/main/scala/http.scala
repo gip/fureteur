@@ -30,20 +30,10 @@ import fureteur.time._
 import fureteur.encoding._
 import fureteur.data._
 import fureteur.dummyssl._
+import fureteur.config._
 
 
-class HttpManager {
-  
-  def getClient() = {
-    HttpManager.client
-  }
-  
-  def getMinInterval() = {
-    1100 // ms
-  }
-}
-
-object HttpManager {
+class HttpManager(config:Config) {
     val http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
     val ssf = DummySSLScheme.getDummySSLScheme();
     val https = new Scheme("https", 443, ssf);
@@ -51,19 +41,26 @@ object HttpManager {
     sr.register(http);
     sr.register(https);
     val cm= new ThreadSafeClientConnManager(sr)
-    cm.setMaxTotal(2);
-    cm.setDefaultMaxPerRoute(2);
+    cm.setMaxTotal( config.getInt("max_connection") );
+    cm.setDefaultMaxPerRoute( config.getInt("max_connection_per_route")  );
     val client = new DefaultHttpClient(cm);
     client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
+    val min_interval_ms= config.getInt("min_interval_ms")
+
+  def getClient() = {
+    client
+  }
+
+  def getMinInterval() = {
+    min_interval_ms
+  }
 }
 
-class HttpFetcher(thres_in: Int,
-                  thres_out: Int,
-                  producer: ActorRef, 
-                  reseller: ActorRef, 
-                  timeout:Option[Long],
+class HttpFetcher(config: Config,
+                  producer: ActorRef,
+                  reseller: ActorRef,
                   manager: HttpManager
-                  )  extends genericProcessor[Data,Data](thres_in, thres_out, producer, reseller, timeout) {
+                  )  extends genericProcessor[Data,Data](config.getInt("threshold_in"), config.getInt("threshold_out"), producer, reseller, config.getLongOption("timeout_ms")) {
 
   self.id= "processor-"+HttpFetcher.iid
   HttpFetcher.iid+= 1

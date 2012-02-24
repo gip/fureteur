@@ -7,11 +7,14 @@ import akka.event.EventHandler
 import fureteur.sync._
 import fureteur.data._
 import fureteur.control._
+import fureteur.config._
 
 // Taking URLs in batches from a file
 //
-class fileBatchPrefetcher(file: String, size:Int, thres:Int, timeout: Option[Long], control: Control) 
-      extends genericBatchProducer[Data](size, thres, timeout, control) {
+class fileBatchPrefetcher(config: Config, control: Control) 
+      extends genericBatchProducer[Data](config.getInt("batch_size"), config.getInt("threshold_in_batches"), config.getLongOption("timeout_ms"), control) {
+
+  val file= config("file_name")
 
   EventHandler.info(this, "Opening "+file)
   val data= scala.io.Source.fromFile(file).getLines.toArray
@@ -31,8 +34,9 @@ class fileBatchPrefetcher(file: String, size:Int, thres:Int, timeout: Option[Lon
 
 
 // 
-class fileBatchWriteback(fname: String, control: Control) extends genericBatchReseller[Data](control) {
+class fileBatchWriteback(config: Config, control: Control) extends genericBatchReseller[Data](control) {
 
+  val fname= config("file_name")
   val file = new java.io.FileWriter(fname)
 
   def resell(batch: List[Data]) = {
