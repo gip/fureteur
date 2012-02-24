@@ -3,32 +3,65 @@ package fureteur
 
 import fureteur.pipeline._
 import fureteur.config._
-
+import fureteur.version._
 
 object Fureteur {
 
   def main(args:Array[String]) {
-	LocalConf.registerLocalConfigs()
 	
-    val system= new System(Config.getConfig(args(0)))
+	// Register local configs
+	LocalConfig.registerLocalConfigs()
+	
+    var config= (None:Option[Config])
 
+    try {
+	  args(0) match {
+		case "use" =>
+		  config= Some( Config.getConfig(args(1)) )
+		case "load" =>
+		  config= Some( Config.fromJson(scala.io.Source.fromFile(args(1)).mkString) )
+		case "show" =>
+		  println(Config.dumpConfig(args(1)))
+		  return
+		case "list" =>
+		  println("Available configs:")
+          Config.showConfigs().map ( kv => println(" "+kv._1+"   # "+kv._2))
+          return
+		case "version" =>
+		  println(Version.versionString)
+		  return
+	  }
+
+    } catch {
+	  case e:java.lang.ArrayIndexOutOfBoundsException =>
+	    println("usage: fureteur use <config name>    # Start execution using a local config")
+	    println("       fureteur load <config path>   # Start execution using the provided config file")
+	    println("       fureteur show <config name>   # Dump a local config to STDOUT")
+	    println("       fureteur list                 # Show available local config")
+	    println("       fureteur version              # Show version")
+	    return
+	}
+
+    val system= new System( config get ) 
     system.start
   }
 
 }
 
 
-object LocalConf {
+object LocalConfig {
 
   def registerLocalConfigs() = {
-    List[String](c0, c1) map ( c => Config.registerConfig( Config.fromJson( c ) ) )
+    localConfigs map ( c => Config.registerConfig( c ) )
   }
 
   val c0= 
 """
 {
   "conf" : "f2f",
-  "instance" : "fureteur#{HOST}",
+  "description" : "File to file operation",
+  "usage" : "f2f <input file> <output file>",
+  "instance" : "fureteu",
    
   "pipelines" : [
     {
@@ -39,7 +72,7 @@ object LocalConf {
 	    },	
 	
 	  "prefetcher" : { "class" : "fileBatchPrefetcher",
-		               "file_name" : "meetup",
+		               "file_name" : "fureteur_in",
 		               "batch_size" : "50",
 		               "threshold_in_batches" : "3",
 		               "timeout_ms" : "1000"
@@ -50,7 +83,7 @@ object LocalConf {
 	                     "timeout_ms" : "1000"
  	                 } ],
 	  "writeback" :{ "class" : "fileBatchWriteback",
-	                 "file_name" : "meetup_res" 
+	                 "file_name" : "fureteur_out" 
 	               }
 	}
   ]
@@ -61,7 +94,9 @@ object LocalConf {
 """
 {
   "conf" : "r2r",
-  "instance" : "fureteur#{HOST}",
+  "description" : "Input/output from RabbitMQ",
+  "usage" : "r2r",
+  "instance" : "fureteur",
    
   "pipelines" : [
     {
@@ -90,4 +125,6 @@ object LocalConf {
   ]
 }
 """
+
+  val localConfigs= List[String](c0, c1)
 }

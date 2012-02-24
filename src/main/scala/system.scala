@@ -34,7 +34,8 @@ class Pipeline(config:Config, control:Control) {
 
 
   val amqpConnection= try { newAmqpConnection(config.getObject("amqp")) }
-	                  catch { case e:java.lang.ArrayIndexOutOfBoundsException => null }
+	                  catch { case _:java.lang.ArrayIndexOutOfBoundsException
+		                         | _:java.util.NoSuchElementException => null }
 
   val prefetch= newPrefetcher(config.getObject("prefetcher"))
 

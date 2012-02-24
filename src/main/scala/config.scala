@@ -39,19 +39,27 @@ class Config(d:Data) {
 
 object Config {
 
-  val configs = new HashMap[String, Config]()
+  val configs = new HashMap[String, (String, Config)]()
 
-  def registerConfig(c:Config):Unit = {
-	println("Registering "+c("conf"))
-    configs+= (c("conf") -> c)
+  def registerConfig(s:String):Unit = {
+	val c= Config.fromJson(s)
+    configs+= (c("conf") -> (s,c))
   }
 
   def getConfig(s:String) = {
-    configs(s)
+    configs(s)._2
+  }
+
+  def dumpConfig(s:String) = {
+    configs(s)._1	
   }
 
   def fromJson(s:String) = {
 	new Config( Data.fromJson(s) )
+  }
+
+  def showConfigs() ={
+	configs.toList.map ( kkv => (kkv._1,kkv._2._2("description") ) )
   }
 
 }
