@@ -11,7 +11,7 @@ object AmpqUtil {
     val conn= new ConnectionFactory().newConnection()
     val chan= conn.createChannel()
     
-    a.foldLeft(1)( (n,e) => { chan.basicPublish(exch, "linkedin", null, ( Data.empty addn List(("fetch_url",e),("meta", n.toString)) ).toBytes ); n+1 } )
+    a.foldLeft(1)( (n,e) => { chan.basicPublish(exch, "FetchIn", null, ( Data.empty addn List(("fetch_url",e),("meta", n.toString)) ).toBytes ); n+1 } )
     
     chan.close()
     conn.close()

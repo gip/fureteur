@@ -19,7 +19,7 @@ object Fureteur {
 
     try {
       args(0) match {
-        case "use" =>
+        case "run" =>
           config= Some( Config.getConfig(args(1)) )
         case "load" =>
           config= Some( Config.fromJson(scala.io.Source.fromFile(args(1)).mkString) )
@@ -37,7 +37,7 @@ object Fureteur {
 
     } catch {
       case e:java.lang.ArrayIndexOutOfBoundsException =>
-        println("usage: fureteur use <config name>    # Start execution using a local config")
+        println("usage: fureteur run <config name>    # Start execution using a local config")
         println("       fureteur load <config path>   # Start execution using the provided config file")
         println("       fureteur show <config name>   # Dump a local config to STDOUT")
         println("       fureteur list                 # Show available local config")
