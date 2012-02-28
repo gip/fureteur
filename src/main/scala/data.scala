@@ -33,7 +33,8 @@ class Data(m:Map[String, JValue]) {
 
   def getOption(s:String): Option[String] = {
     try { Some(get(s)) }
-    catch { case e:WrongValueType => None }
+    catch { case _:WrongValueType
+	      |      _:NoSuchElementException => None }
   }
 
 /*
@@ -57,6 +58,10 @@ class Data(m:Map[String, JValue]) {
       case JArray(l:List[JObject]) => l.map (Data.fromAST(_))
       case _ => throw new WrongValueType
     }
+  }
+
+  def exists(s:String) = {
+    map contains s
   }
 
   def getObject(s:String) = {

@@ -34,9 +34,12 @@ class System(config:Config) {
 class Pipeline(config:Config, control:Control) {
 
 
-  val amqpConnection= try { newAmqpConnection(config.getObject("amqp")) }
-                      catch { case _:java.lang.ArrayIndexOutOfBoundsException
-                                 | _:java.util.NoSuchElementException => null }
+  val amqpConnection= { 
+    (config exists "amqp") match {
+      case true => newAmqpConnection(config.getObject("amqp"))
+      case _ => null
+    }
+  }
 
   val prefetch= newPrefetcher(config.getObject("prefetcher"))
 
@@ -75,9 +78,21 @@ class Pipeline(config:Config, control:Control) {
   }
 
   def newAmqpConnection(config:Config) = {
-    println("Creating AMQP connection")
     import com.rabbitmq.client._
-    val factory= new ConnectionFactory() // This will come from the config 
+    val factory= new ConnectionFactory() // This will come from the config
+    /* factory.setUri() doesn't work, not sure why
+     (config getOption "uri") match {
+      case Some(uri:String) => //factory.setUri(uri)
+      case _ => ()
+    } */
+    val l= List( ("user", factory.setUsername(_)),
+                 ("password", factory.setPassword(_)),
+                 ("host", factory.setHost(_)),
+                 ("port", ( (s:String) => factory.setPort(s.toInt))),
+                 ("virtualHost", factory.setVirtualHost(_))
+               )
+    l foreach ( x => if(config exists x._1) { x._2(config(x._1)) } )
+
     val conn= factory.newConnection()
     val chan= conn.createChannel()
     println(conn)

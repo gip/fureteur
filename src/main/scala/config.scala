@@ -31,6 +31,10 @@ class Config(d:Data) {
     }
   }
 
+  def exists(s:String) = {
+    data exists s
+  }
+
   def getObject(s:String):Config = { new Config(data.getObject(s)) }
 
   def unwrapArray(s:String):List[Config] = {
