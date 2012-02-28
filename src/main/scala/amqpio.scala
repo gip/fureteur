@@ -36,7 +36,7 @@ class amqpBatchPrefetcher(config: Config,
     val deliveryTag= response.getEnvelope().getDeliveryTag()
     EventHandler.info(this, "Fetched message from "+queue+" with delivery tag "+deliveryTag)
     val d= Data.fromBytes(ra)
-    d add ("fetch_in_delivery_tag", deliveryTag.toString)
+    d add ("fetch_queue_delivery_tag", deliveryTag.toString)
   }
   
   override def getBatch(sz:Int):Option[List[Data]] = {
@@ -60,7 +60,7 @@ class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extend
   def resell(batch: List[Data]) = {  
     batch match {
       case x::xs => {
-        val deliveryTag= (x get "fetch_in_delivery_tag").toLong
+        val deliveryTag= (x get "fetch_queue_delivery_tag").toLong
         chan.basicPublish(exch, "", null, x.toBytes)
         chan.basicAck(deliveryTag, false)
         EventHandler.info(this, "Publishing message to "+exch+" and acking delivery tag "+deliveryTag)
