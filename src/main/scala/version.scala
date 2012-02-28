@@ -5,5 +5,6 @@
 package fureteur.version
 
 object Version {
-  val versionString= "fureteur 0.0.1"
+  val versionString= "fureteur 0.0.2"
+  val formatVersionString= "v1"
 }

@@ -31,7 +31,7 @@ import fureteur.encoding._
 import fureteur.data._
 import fureteur.dummyssl._
 import fureteur.config._
-
+import fureteur.version._
 
 class HttpManager(config:Config) {
     val http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
@@ -70,7 +70,7 @@ class HttpFetcher(config: Config,
   
 
   def process(d:Data):Data = {
-    var x= d
+    var out= List[(String, String)]( ("fetch_version", Version.versionString), ("fetch_format_version", Version.formatVersionString))
 	try {
       Thread.sleep(interval)
       val url= d get "fetch_url"
@@ -89,17 +89,18 @@ class HttpFetcher(config: Config,
       val t1= Time.msNow
       last_fetch_ms= t1
 
-      x= x add ("fetch_time", Time.sNow.toString)
-      x= x add ("fetch_latency", (t1-t0).toString)
-      x= x add ("fetch_size", page.length.toString)
-      x= x add ("fetch_data", zpage)
-      x= x add ("fetch_status_code", code.toString)
-      x= x add ("fetch_status_line", status.toString)
-      x= x add ("fetch_error", "false")
+      out= ("fetch_time", Time.sNow.toString)::
+                 ("fetch_latency", (t1-t0).toString)::
+                 ("fetch_size", page.length.toString)::
+                 ("fetch_data", zpage)::
+                 ("fetch_status_code", code.toString)::
+                 ("fetch_status_line", status.toString)::
+                 ("fetch_error", "false")::out
     } catch {
-	  case e:Exception => x = (x add ("fetch_error", "true")) add ("fetch_error_reason", "exception")
+	  case e:Exception => out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out
 	}
-	x
+
+	d addn out
   }                                                                   
 }
 
