@@ -23,4 +23,16 @@ object AmpqUtil {
 
 }
 
+/*
+import com.rabbitmq.client._
+def pushFile(f:String) = {
+  val li= scala.io.Source.fromFile(f).getLines.toList
+
+  val factory= new ConnectionFactory()
+  factory.setHost("")
+
+}
+*/
+
+
 

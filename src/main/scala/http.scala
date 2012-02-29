@@ -71,12 +71,13 @@ class HttpFetcher(config: Config,
 
   def process(d:Data):Data = {
     var out= List[(String, String)]( ("fetch_version", Version.versionString), ("fetch_format_version", Version.formatVersionString))
+    var error= "false"
+    var retcode= ""
+    val url= d get "fetch_url"
 	try {
       Thread.sleep(interval)
-      val url= d get "fetch_url"
       val t0= Time.msNow
       val get= new HttpGet(url)
-      EventHandler.info(this, "Fetching "+url)
       val ctx= new BasicHttpContext()  // Can this be re-used?
       val res= client.execute(get, ctx)
       val entity= res.getEntity()
@@ -88,7 +89,7 @@ class HttpFetcher(config: Config,
       EntityUtils.consume(entity)
       val t1= Time.msNow
       last_fetch_ms= t1
-
+      retcode= code.toString
       out= ("fetch_time", Time.sNow.toString)::
                  ("fetch_latency", (t1-t0).toString)::
                  ("fetch_size", page.length.toString)::
@@ -97,9 +98,9 @@ class HttpFetcher(config: Config,
                  ("fetch_status_line", status.toString)::
                  ("fetch_error", "false")::out
     } catch {
-	  case e:Exception => out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out
+	  case e:Exception => { error="true"; out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out }
 	}
-
+    EventHandler.info(this, "Fetching "+url+", fetch_error "+error+", status code "+retcode)
 	d addn out
   }                                                                   
 }
