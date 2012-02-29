@@ -61,7 +61,14 @@ class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extend
     batch match {
       case x::xs => {
         val deliveryTag= (x get "fetch_queue_delivery_tag").toLong
-        chan.basicPublish(exch, "", null, x.toBytes)
+        val key= try {
+            (x get "fetch_status_code") match {
+              case "200" => "200"
+              case s if s.matches("^4\\d\\d") => "4xx"
+              case _ => "Error" 
+            }
+        } catch { case _ => "Error" }
+        chan.basicPublish(exch, key, null, x.toBytes)
         chan.basicAck(deliveryTag, false)
         EventHandler.info(this, "Publishing message to "+exch+" and acking delivery tag "+deliveryTag)
         resell(xs) 
