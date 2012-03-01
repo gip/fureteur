@@ -68,7 +68,7 @@ class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extend
               case _ => "Error" 
             }
         } catch { case _ => "Error" }
-        chan.basicPublish(exch, key, null, x.toBytes)
+        chan.basicPublish(exch, key, MessageProperties.PERSISTENT_TEXT_PLAIN, x.toBytes)
         chan.basicAck(deliveryTag, false)
         EventHandler.info(this, "Publishing message to "+exch+" and acking delivery tag "+deliveryTag)
         resell(xs) 
