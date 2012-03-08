@@ -67,10 +67,12 @@ class HttpFetcher(config: Config,
   val client= manager.getClient
   val interval= manager.getMinInterval
   var last_fetch_ms= 0L
+  val hostname= java.net.InetAddress.getLocalHost.getHostName
   
 
   def process(d:Data):Data = {
-    var out= List[(String, String)]( ("fetch_version", Version.versionString), ("fetch_format_version", Version.formatVersionString))
+    var out= List[(String, String)]( ("fetch_version", Version.versionString), ("fetch_format_version", Version.formatVersionString), 
+                                     ("fetch_host", hostname) )
     var error= "false"
     var retcode= ""
     val url= d get "fetch_url"
