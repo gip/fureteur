@@ -8,7 +8,7 @@ mainClass := Some("Fureteur")
 
 resolvers += "Twitter Repository" at "http://maven.twttr.com"
 
-seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+//seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
 
 resolvers += "Akka Maven" at "http://akka.io/repository"
 
