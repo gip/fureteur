@@ -16,6 +16,11 @@ class Data(m:Map[String, JValue]) {
 
   val map= m
 
+  def toSSMap():Map[String,String] = {
+    map.mapValues ( v => v match { case JString(s) => s
+	                               case _ => throw new WrongValueType } )
+  }
+
   def add(k:String, v:String) = {
     new Data( map + (k->JString(v)) )
   }
@@ -100,5 +105,9 @@ object Data {
 
   def fromBytes(a:Array[Byte]) = {
     fromJson(new String(a))
+  }
+
+  def fromMap(m:scala.collection.Map[String,String]):Data = {
+    new Data( m.mapValues( new JString(_) ).toMap )
   }
 }
