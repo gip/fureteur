@@ -31,6 +31,10 @@ class Data(m:Map[String, JValue]) {
     }
   }
 
+  def apply(s:String):String = {
+	get(s)
+  }
+
   def getOption(s:String): Option[String] = {
     try { Some(get(s)) }
     catch { case _:WrongValueType
