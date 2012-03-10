@@ -85,6 +85,10 @@ class Data(m:Map[String, JValue]) {
     compact(render(JObject(m)))
   }
 
+  def toJValue():JValue = {
+    new JObject( map.foldRight(List[JField]())( ( ( kv, acc ) => JField(kv._1,kv._2)::acc) ) )
+  }
+
   def toBytes() = { toJson().getBytes }
 }
 
