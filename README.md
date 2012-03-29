@@ -2,6 +2,7 @@ Fureteur
 ========
 
 [Fureteur](https://github.com/gip/fureteur) is a simple, configurable, fault-tolerant http crawler written is scala. The main features are:
+
 * Configurable number of concurrent pipelines; each pipeline may include a configurable number of individual fetchers
 * Reuse of http connection
 * Modular implementation using [akka actors](http://akka.io/)
@@ -15,7 +16,8 @@ Getting Started
 ---------------
 
 First, let's checkout the project and show the usage:
-```bash
+
+```
 bash-3.2$ git clone git://github.com/gip/fureteur.git
 bash-3.2$ sbt "run"
 [info] Loading project definition from /Users/gilles/gip/test/fureteur/project
@@ -30,7 +32,8 @@ usage: fureteur run <config name>    # Start execution using a local config
 ```
 
 Now, let's show the list of available configuration file and display the first one:
-```bash
+
+```
 bash-3.2$ sbt "run list"
 [info] Loading project definition from /Users/gilles/gip/test/fureteur/project
 [info] Set current project to fureteur (in build file:/Users/gilles/gip/test/fureteur/)
@@ -86,11 +89,13 @@ bash-3.2$ sbt "run show f2f"
 The configuration above basically prefetch URLs from the fureteur_in file, fetch them and write them back to the fetch_out file. All the different options should be self-explanatory. Don't hesitate to contact me for further details.
 
 To run the configuration, just do:
+
 ```
 bash-3.2$ sbt "run run f2f"
 ```
 
 It is also possible to copy/paste the configuration into a local file (for instance ex.conf), modify it and start fureteur using:
+
 ```
 bash-3.2$ sbt "run load f2f"
 ```
