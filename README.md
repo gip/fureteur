@@ -15,7 +15,7 @@ Getting Started
 ---------------
 
 First, let's checkout the project and show the usage:
-```
+```bash
 bash-3.2$ git clone git://github.com/gip/fureteur.git
 bash-3.2$ sbt "run"
 [info] Loading project definition from /Users/gilles/gip/test/fureteur/project
@@ -30,7 +30,7 @@ usage: fureteur run <config name>    # Start execution using a local config
 ```
 
 Now, let's show the list of available configuration file and display the first one:
-```
+```bash
 bash-3.2$ sbt "run list"
 [info] Loading project definition from /Users/gilles/gip/test/fureteur/project
 [info] Set current project to fureteur (in build file:/Users/gilles/gip/test/fureteur/)
