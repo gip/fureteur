@@ -75,7 +75,9 @@ class HttpFetcher(config: Config,
                                      ("fetch_host", hostname) )
     var error= "false"
     var retcode= ""
-    val url= d get "fetch_url"
+    val url= d("fetch_url")
+    val compress= d.getOption("fetch_compress") match { case None | Some("true") => true 
+	                                                    case _ => false }
 	try {
       Thread.sleep(interval)
       val t0= Time.msNow
@@ -84,7 +86,7 @@ class HttpFetcher(config: Config,
       val res= client.execute(get, ctx)
       val entity= res.getEntity()
       val page= EntityUtils.toByteArray(entity)
-      val zpage= Encoding.byteToZippedString64(page)
+      val zpage= if(compress) Encoding.byteToZippedString64(page) else new String(page)
       val status= res.getStatusLine()
       val code= status.getStatusCode()
     
@@ -95,10 +97,12 @@ class HttpFetcher(config: Config,
       out= ("fetch_time", Time.sNow.toString)::
                  ("fetch_latency", (t1-t0).toString)::
                  ("fetch_size", page.length.toString)::
-                 ("fetch_data", zpage)::
                  ("fetch_status_code", code.toString)::
                  ("fetch_status_line", status.toString)::
                  ("fetch_error", "false")::out
+      if(code>=200 && code<300) {
+        out= ("fetch_data", zpage)::out
+      }
     } catch {
 	  case e:Exception => { error="true"; out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out }
 	}
