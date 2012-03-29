@@ -105,4 +105,4 @@ It is also possible to create a separate jar file and start fureteur without sbt
 Contact
 -------
 
-Created by [Gilles Pirio](https://github.com/gip). Feel free to contact me at [gip.github@gmail.com](mailto:gip.github@gmail.com) .Thanks to [@Entelo](https://twitter.com/Entelo) for supporting open-source development!
+Created by [Gilles Pirio](https://github.com/gip). Feel free to contact me at [gip.github@gmail.com](mailto:gip.github@gmail.com). Thanks to [@Entelo](https://twitter.com/Entelo) for supporting open-source development!
