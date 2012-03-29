@@ -21,13 +21,11 @@ class Data(m:Map[String, JValue]) {
 	                               case _ => throw new WrongValueType } )
   }
 
-  def add(k:String, v:String) = {
-    new Data( map + (k->JString(v)) )
-  }
+  def +(k:String, v:String) = new Data( map + (k->JString(v)) )
 
-  def addn(kvs:List[(String, String)]) = {
-    new Data( map ++ (kvs.map ( (kv) => (kv._1 -> JString(kv._2)) ) ) )
-  }
+  def ++(kvs:List[(String, String)]) = new Data( map ++ (kvs.map ( (kv) => (kv._1 -> JString(kv._2)) ) ) )
+
+  def -(k:String) = new Data( map - k )
 
   def get(s:String):String = {
     map(s) match {
@@ -36,9 +34,7 @@ class Data(m:Map[String, JValue]) {
     }
   }
 
-  def apply(s:String):String = {
-	get(s)
-  }
+  def apply(s:String):String = get(s)
 
   def getOption(s:String): Option[String] = {
     try { Some(get(s)) }

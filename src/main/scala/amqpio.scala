@@ -36,7 +36,7 @@ class amqpBatchPrefetcher(config: Config,
     val deliveryTag= response.getEnvelope().getDeliveryTag()
     EventHandler.info(this, "Fetched message from "+queue+" with delivery tag "+deliveryTag)
     val d= Data.fromBytes(ra)
-    d add ("fetch_queue_delivery_tag", deliveryTag.toString)
+    d + ("fetch_queue_delivery_tag", deliveryTag.toString)
   }
   
   override def getBatch(sz:Int):Option[List[Data]] = {

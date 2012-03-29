@@ -30,7 +30,7 @@ class fileBatchPrefetcher(config: Config, control: Control)
     val l= data.slice(index-sz, index).toList
     EventHandler.info(this, "Fetched "+l.length.toString+" entrie(s) from "+file)
     val d= Data.empty
-    Some( l map (e => d addn List(("fetch_url", e),("batch", batch.toString)) )  )
+    Some( l map (e => d ++ List(("fetch_url", e),("batch", batch.toString)) )  )
   }
 }
 

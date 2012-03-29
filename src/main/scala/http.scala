@@ -101,13 +101,13 @@ class HttpFetcher(config: Config,
                  ("fetch_status_line", status.toString)::
                  ("fetch_error", "false")::out
       if(code>=200 && code<300) {
-        out= ("fetch_data", zpage)::out
+        out= ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::out
       }
     } catch {
 	  case e:Exception => { error="true"; out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out }
 	}
     EventHandler.info(this, "Fetching "+url+", fetch_error "+error+", status code "+retcode)
-	d addn out
+	(d - "fetch_compress") ++ out
   }                                                                   
 }
 
