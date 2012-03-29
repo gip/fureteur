@@ -97,7 +97,7 @@ bash-3.2$ sbt "run run f2f"
 It is also possible to copy/paste the configuration into a local file (for instance ex.conf), modify it and start fureteur using:
 
 ```
-bash-3.2$ sbt "run load f2f"
+bash-3.2$ sbt "run load ex.conf"
 ```
 
 It is also possible to create a separate jar file and start fureteur without sbt - please refer to sbt documentation. The r2r configuration reads and writes from an AMQP-compliant queue.
