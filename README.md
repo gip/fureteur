@@ -108,7 +108,7 @@ Distributed Crawling
 
 Fureteur makes it very easy to implement a distributed crawler - for instance on [Amazon AWS EC2](http://aws.amazon.com/ec2/). 
 
-![Example of distributed crawler on EC2](https://github.com/gip/fureteur/doc/dcrawling.jpg)
+![Example of distributed crawler on EC2](https://github.com/gip/fureteur/raw/master/doc/dcrawling.jpg)
 
 The main server above includes RabbitMQ queues storing the URLs to be fetched (fetchIn queues) and a queue that includes the fetched data. A simple JSON format is used for the messages. Separate tasks running on the server take care of scheduling URLs to be fetched and writing back the data into a distributed database. 
 
