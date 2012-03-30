@@ -9,6 +9,7 @@ Fureteur
 * URLs prefetching and data writeback are made in batch (batch size is configurable)
 * Build on the robust [apache http client library](http://hc.apache.org/)
 * Prefetching of URLs from file and/or AMQP queues as [RabbitMQ](http://www.rabbitmq.com/)
+* fetched HTML is zipped and binary64-encoded
 * Easy build with [sbt](https://github.com/harrah/xsbt/wiki)
 * Configurable using a simple JSON file
 
@@ -101,6 +102,23 @@ bash-3.2$ sbt "run load ex.conf"
 ```
 
 It is also possible to create a separate jar file and start fureteur without sbt - please refer to sbt documentation. The r2r configuration reads and writes from an AMQP-compliant queue.
+
+Distributed Crawling
+--------------------
+
+Fureteur makes it very easy to implement a distributed crawler - for instance on [Amazon AWS EC2](http://aws.amazon.com/ec2/). 
+
+![Example of distributed crawler on EC2](https://github.com/gip/fureteur/doc/dcrawling.jpg)
+
+The main server above includes RabbitMQ queues storing the URLs to be fetched (fetchIn queues) and a queue that includes the fetched data. A simple JSON format is used for the messages. Separate tasks running on the server take care of scheduling URLs to be fetched and writing back the data into a distributed database. 
+
+A configurable number of fetcher can be started using separate EC2 instances. Each instance will get URLs batches from the server fetchIn queues, fetch them and write them back into the fetchOut queue. Cost-effective EC2 micro instances may be used since fetching is not a CPU-intensive task. When it comes to the fetcher instances, the system is totally fault-tolerant - if an instance becomes unresponsive and/or is abruptly terminated, no data will be lost thanks to the RabbitMQ acknowledgement mechanism.
+
+
+Future Work
+-----------
+
+The next version will include optional configuration using ZooKeeper and more fault-tolerance features. 
 
 Contact
 -------
