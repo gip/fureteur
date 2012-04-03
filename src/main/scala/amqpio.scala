@@ -4,7 +4,9 @@
 
 package fureteur.amqpio
 
-import akka.event.EventHandler
+import akka.actor.Actor
+import akka.actor.Props
+import akka.event.Logging
 import com.rabbitmq.client._
 
 import fureteur.config._
@@ -20,6 +22,7 @@ class amqpBatchPrefetcher(config: Config,
                           chan: Channel) 
       extends genericBatchProducer[Data](config.getInt("batch_size"), config.getInt("threshold_in_batches"), config.getLongOption("timeout_ms"), control) {
   
+  //val log = Logging(context.system, this)
   val queue= config("queue")
   
   override def init() = {
@@ -34,7 +37,7 @@ class amqpBatchPrefetcher(config: Config,
     if (null==response) { throw new EmptyQueue }
     val ra= response.getBody()
     val deliveryTag= response.getEnvelope().getDeliveryTag()
-    EventHandler.info(this, "Fetched message from "+queue+" with delivery tag "+deliveryTag)
+    log.info("Fetched message from "+queue+" with delivery tag "+deliveryTag)
     val d= Data.fromBytes(ra)
     d + ("fetch_queue_delivery_tag", deliveryTag.toString)
   }
@@ -44,7 +47,7 @@ class amqpBatchPrefetcher(config: Config,
 
     val l= rec(sz, List[Data]())
     val ls= l.length
-    if(ls>0) { EventHandler.info(this, "Fetched "+ls.toString+" message(s) from "+queue) }
+    if(ls>0) { log.info("Fetched "+ls.toString+" message(s) from "+queue) }
     if(l isEmpty) { None } else { return Some(l) }
   }
   
@@ -55,6 +58,7 @@ class amqpBatchPrefetcher(config: Config,
 //
 class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extends genericBatchReseller[Data](control) {
 
+  //val log = Logging(context.system, this)
   val exch= config("exchange")
 
   def resell(batch: List[Data]) = {  
@@ -70,7 +74,7 @@ class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extend
         } catch { case _ => "Error" }
         chan.basicPublish(exch, key, MessageProperties.PERSISTENT_TEXT_PLAIN, x.toBytes)
         chan.basicAck(deliveryTag, false)
-        EventHandler.info(this, "Publishing message to "+exch+" and acking delivery tag "+deliveryTag)
+        log.info("Publishing message to "+exch+" and acking delivery tag "+deliveryTag)
         resell(xs) 
       }
       case Nil => ()

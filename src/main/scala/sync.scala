@@ -6,8 +6,9 @@ package fureteur.sync
 
 // We are using Akka actors
 import akka.actor._
-import akka.actor.Actor._
-import akka.event.EventHandler
+import akka.event.Logging
+import akka.util.duration._
+
 import fureteur.collection.FIFO
 import fureteur.control.Control
 
@@ -31,7 +32,8 @@ abstract class genericProcessor[T,U] (thres_in: Int,             // Input thresh
                                       timeout: Option[Long]
                                       ) extends Actor {
 
-  self.receiveTimeout = timeout
+  val log = Logging(context.system, this)
+  timeout match { case Some(ms) => context.setReceiveTimeout(ms milliseconds) }
   val fifo= new FIFO[T](Some( (thres_in, request) ))
   var fifo_max= 0
   var processed= List[U]()
@@ -52,7 +54,7 @@ abstract class genericProcessor[T,U] (thres_in: Int,             // Input thresh
     case DataIn(_, elems: List[T]) => { fifo pushn elems; processShift() }
     case StatsReq(handler) => handler(stats())
     case ReceiveTimeout => { processShift() }
-    case _ => EventHandler.info(this, "received unknown message")
+    case _ => log.info("received unknown message")
   }
   
   def processShift(): Unit ={
@@ -84,7 +86,7 @@ abstract class genericProcessor[T,U] (thres_in: Int,             // Input thresh
 
   def stats(): List[(String,String)] = {
     var l= getStats()
-    l= ("uuid",self.uuid.toString)::("id",self.id)::("total_processed", total_count.toString)::l
+    l= ("total_processed", total_count.toString)::l
     l= ("fifo_max_length", fifo_max.toString)::l
     l= ("partial_send_count", partial_send_count.toString)::l
     l= ("send_count", send_count.toString)::l
@@ -103,7 +105,9 @@ abstract class genericBatchProducer[T] (size:Int,              // Size of a batc
                                         timeout: Option[Long], // Timeout in ms
                                         control: Control       // Control class
                                        ) extends Actor {
-  self.receiveTimeout = timeout
+
+  val log = Logging(context.system, this)
+  timeout match { case Some(ms) => context.setReceiveTimeout(ms milliseconds) }
   var timeouts= 0
   var batches_sent= 0                             
                                            
@@ -122,7 +126,7 @@ abstract class genericBatchProducer[T] (size:Int,              // Size of a batc
     case DataReq(req, _) => { reqfifo push req; handleRequests(); }
     case ReceiveTimeout => { timeouts+=1; handleRequests() }
     case StatsReq(handler) => handler(stats())
-    case _ => EventHandler.info(this, "received unknown message")
+    case _ => log.info("received unknown message")
   }
   
   def handleRequests(): Unit = {
@@ -147,7 +151,7 @@ abstract class genericBatchProducer[T] (size:Int,              // Size of a batc
   }
   
   def stats(): List[(String,String)] = {
-    ("uuid",self.uuid.toString)::("id",self.id)::("timeouts",timeouts.toString)::("batches_sent",batches_sent.toString)::getStats()
+    ("timeouts",timeouts.toString)::("batches_sent",batches_sent.toString)::getStats()
   }
   
   def getBatch(n:Int): Option[List[T]] // This function MUST not block
@@ -158,16 +162,18 @@ abstract class genericBatchProducer[T] (size:Int,              // Size of a batc
 // Generic batch reseller
 //
 abstract class genericBatchReseller[T](control: Control) extends Actor {
+
+  val log = Logging(context.system, this)
   var c=0
   
   def receive = {
     case DataOut(req, out:List[T]) => { val sz= out.length; c+= sz; resell(out); control.subCounter(sz) }
     case StatsReq(handler) => handler(stats())
-    case _ => EventHandler.info(this, "received unknown message")
+    case _ => log.info("received unknown message")
   }
   
   def stats(): List[(String,String)] = {
-    ("uuid",self.uuid.toString)::("id",self.id)::getStats()
+    getStats()
   }
   
   def resell(d:List[T])

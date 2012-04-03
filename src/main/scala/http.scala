@@ -8,8 +8,7 @@ import java.io._
 import java.util.concurrent.TimeUnit
 // Akka
 import akka.actor._
-import akka.actor.Actor._
-import akka.event.EventHandler
+import akka.event.Logging
 // We're using Apache http 4.x
 import org.apache.http._
 import org.apache.http.conn.scheme._
@@ -62,8 +61,9 @@ class HttpFetcher(config: Config,
                   manager: HttpManager
                   )  extends genericProcessor[Data,Data](config.getInt("threshold_in"), config.getInt("threshold_out"), producer, reseller, config.getLongOption("timeout_ms")) {
 
-  self.id= "processor-"+HttpFetcher.iid
-  HttpFetcher.iid+= 1
+  //val log = Logging(context.system, this)
+  //self.id= "processor-"+HttpFetcher.iid
+  //HttpFetcher.iid+= 1
   val client= manager.getClient
   val interval= manager.getMinInterval
   var last_fetch_ms= 0L
@@ -106,7 +106,7 @@ class HttpFetcher(config: Config,
     } catch {
 	  case e:Exception => { error="true"; out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out }
 	}
-    EventHandler.info(this, "Fetching "+url+", fetch_error "+error+", status code "+retcode)
+    log.info("Fetching "+url+", fetch_error "+error+", status code "+retcode)
 	(d - "fetch_compress") ++ out
   }                                                                   
 }

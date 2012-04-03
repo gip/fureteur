@@ -5,7 +5,8 @@
 package fureteur.pipeline
 
 import akka.actor._
-import akka.actor.Actor._
+import akka.actor.Props
+import akka.event.Logging
 
 import fureteur.data._
 import fureteur.fileio._
@@ -20,10 +21,11 @@ case class ClassNotFound(klass:String) extends Exception
 class System(config:Config) {
 
   // Build the system
-  var name = config("instance")
+  val asys= ActorSystem("Fureteur")
+  val name= config("instance")
   val control= new PipelineControl(config)
 
-  val pipelines= (config unwrapArray "pipelines") map (new Pipeline(_, control))
+  val pipelines= (config unwrapArray "pipelines") map (new Pipeline(_, control, asys))
 
   def start():Unit = {
     pipelines map ( (p) => p.start )
@@ -31,7 +33,7 @@ class System(config:Config) {
 
 }
 
-class Pipeline(config:Config, control:Control) {
+class Pipeline(config:Config, control:Control, asys:ActorSystem) {
 
 
   val amqpConnection= { 
@@ -47,32 +49,34 @@ class Pipeline(config:Config, control:Control) {
 
   val httpManager= new HttpManager(config.getObject("httpManager"))
 
-  val fetchers= (config unwrapArray "httpFetchers") map ( f => actorOf( new HttpFetcher(f, prefetch, writeback, httpManager ) ) )
+  val fetchers= (config unwrapArray "httpFetchers") map ( f => asys.actorOf(Props(new HttpFetcher(f, prefetch, writeback, httpManager )) /*, name= "fetcher"*/ ) )
 
   def start():Unit = {
-    prefetch.start
-    writeback.start
-    fetchers map ( f => f.start )
+    //prefetch.start
+    //writeback.start
+    //fetchers map ( f => f.start )
   }
 
   def stop():Unit = {
-    prefetch.stop
-    writeback.stop
-    fetchers map ( f => f.stop )
+    //prefetch.stop
+    //writeback.stop
+    //fetchers map ( f => f.stop )
   }
 
   def newPrefetcher(config:Config):ActorRef = {
-     config("class") match {
-        case "fileBatchPrefetcher" => actorOf( new fileBatchPrefetcher( config, control ) )
-        case "amqpBatchPrefetcher" => actorOf( new amqpBatchPrefetcher( config, control, amqpConnection._2 ) )
+	 val klass= config("class")
+     klass match {
+        case "fileBatchPrefetcher" => asys.actorOf( Props(new fileBatchPrefetcher( config, control ) ), name= klass )
+        case "amqpBatchPrefetcher" => asys.actorOf( Props(new amqpBatchPrefetcher( config, control, amqpConnection._2 ) ), name= klass )
         case (e:String) => throw (new ClassNotFound(e))
       }
   }
 
   def  newWriteback(config:Config):ActorRef = {
-     config("class") match {
-        case "fileBatchWriteback" => actorOf( new fileBatchWriteback( config, control ) )
-        case "amqpBatchWriteback" =>  actorOf( new amqpBatchWriteback( config, control, amqpConnection._2 ) )
+     val klass= config("class")
+     klass match {
+        case "fileBatchWriteback" => asys.actorOf( Props(new fileBatchWriteback( config, control ) ), name= klass )
+        case "amqpBatchWriteback" => asys.actorOf( Props(new amqpBatchWriteback( config, control, amqpConnection._2 ) ), name= klass )
         case (e:String) => throw (new ClassNotFound(e))
       }
   }

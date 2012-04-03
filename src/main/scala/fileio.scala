@@ -4,7 +4,9 @@
 
 package fureteur.fileio
 
-import akka.event.EventHandler
+import akka.actor.Actor
+import akka.actor.Props
+import akka.event.Logging
 
 import fureteur.sync._
 import fureteur.data._
@@ -16,9 +18,10 @@ import fureteur.config._
 class fileBatchPrefetcher(config: Config, control: Control) 
       extends genericBatchProducer[Data](config.getInt("batch_size"), config.getInt("threshold_in_batches"), config.getLongOption("timeout_ms"), control) {
 
+  //val log = Logging(context.system, this)
   val file= config("file_name")
 
-  EventHandler.info(this, "Opening "+file)
+  log.info("Opening "+file)
   val data= scala.io.Source.fromFile(file).getLines.toArray
   var index= 0
   var batch= 0
@@ -28,7 +31,7 @@ class fileBatchPrefetcher(config: Config, control: Control)
     index+= sz
     batch+= 1
     val l= data.slice(index-sz, index).toList
-    EventHandler.info(this, "Fetched "+l.length.toString+" entrie(s) from "+file)
+    log.info("Fetched "+l.length.toString+" entrie(s) from "+file)
     val d= Data.empty
     Some( l map (e => d ++ List(("fetch_url", e),("batch", batch.toString)) )  )
   }
@@ -38,11 +41,12 @@ class fileBatchPrefetcher(config: Config, control: Control)
 // 
 class fileBatchWriteback(config: Config, control: Control) extends genericBatchReseller[Data](control) {
 
+  //val log = Logging(context.system, this)
   val fname= config("file_name")
   val file = new java.io.FileWriter(fname)
 
   def resell(batch: List[Data]) = {
-    EventHandler.info(this, "Writing "+batch.length.toString+" entrie(s) to "+file)
+    log.info("Writing "+batch.length.toString+" entrie(s) to "+file)
     def doit(b:List[Data]):Unit = {
       b match {
         case x::xs => { val s= x.toJson+"\n"; file.write(s); doit(xs) }
