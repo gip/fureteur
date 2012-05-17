@@ -5,6 +5,7 @@
 package fureteur.data
 
 import scala.collection.immutable._
+import scala.xml._
 import net.liftweb.json._
 
 class WrongValueType extends Exception
@@ -99,8 +100,13 @@ object Data {
     }   
   }
 
-  def fromJson(s:String): Data = {
-    fromAST(parse(s))
+  def fromJson(js:String): Data = {
+    fromAST(parse(js))
+  }
+
+  def fromXml(xs:String): Data = {
+    val jast= net.liftweb.json.Xml.toJson(XML.loadString(xs)) 
+    fromAST(jast)
   }
 
   def fromBytes(a:Array[Byte]) = {
