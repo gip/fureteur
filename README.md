@@ -1,7 +1,7 @@
 Fureteur
 ========
 
-[Fureteur](https://github.com/gip/fureteur) is a simple, configurable, fault-tolerant http crawler written is scala. The main features are:
+[Fureteur](https://github.com/gip/fureteur) is a simple, configurable, fault-tolerant http crawler written in scala. The main features are:
 
 * Configurable number of concurrent pipelines; each pipeline may include a configurable number of individual fetchers
 * Reuse of http connection
