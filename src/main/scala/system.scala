@@ -21,7 +21,7 @@ case class ClassNotFound(klass:String) extends Exception
 class System(config:Config) {
 
   // Build the system
-  val asys= ActorSystem("Fureteur")
+  val asys= System.asys
   val name= config("instance")
   val control= new PipelineControl(config)
 
@@ -31,6 +31,16 @@ class System(config:Config) {
     pipelines map ( (p) => p.start )
   } 
 
+}
+
+object System {
+
+  val asys= ActorSystem("Fureteur")
+  var i= 0
+  def unique(s:String) = {
+    i+= 1
+    s+i.toString
+  }
 }
 
 class Pipeline(config:Config, control:Control, asys:ActorSystem) {
@@ -66,8 +76,8 @@ class Pipeline(config:Config, control:Control, asys:ActorSystem) {
   def newPrefetcher(config:Config):ActorRef = {
 	 val klass= config("class")
      klass match {
-        case "fileBatchPrefetcher" => asys.actorOf( Props(new fileBatchPrefetcher( config, control ) ), name= klass )
-        case "amqpBatchPrefetcher" => asys.actorOf( Props(new amqpBatchPrefetcher( config, control, amqpConnection._2 ) ), name= klass )
+        case "fileBatchPrefetcher" => asys.actorOf( Props(new fileBatchPrefetcher( config, control ) ), name= System.unique(klass) )
+        case "amqpBatchPrefetcher" => asys.actorOf( Props(new amqpBatchPrefetcher( config, control, amqpConnection._2 ) ), name= System.unique(klass) )
         case (e:String) => throw (new ClassNotFound(e))
       }
   }
@@ -75,8 +85,8 @@ class Pipeline(config:Config, control:Control, asys:ActorSystem) {
   def  newWriteback(config:Config):ActorRef = {
      val klass= config("class")
      klass match {
-        case "fileBatchWriteback" => asys.actorOf( Props(new fileBatchWriteback( config, control ) ), name= klass )
-        case "amqpBatchWriteback" => asys.actorOf( Props(new amqpBatchWriteback( config, control, amqpConnection._2 ) ), name= klass )
+        case "fileBatchWriteback" => asys.actorOf( Props(new fileBatchWriteback( config, control ) ), name= System.unique(klass) )
+        case "amqpBatchWriteback" => asys.actorOf( Props(new amqpBatchWriteback( config, control, amqpConnection._2 ) ), name= System.unique(klass) )
         case (e:String) => throw (new ClassNotFound(e))
       }
   }
