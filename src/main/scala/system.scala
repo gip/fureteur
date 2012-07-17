@@ -76,8 +76,8 @@ class Pipeline(config:Config, control:Control, asys:ActorSystem) {
   def newPrefetcher(config:Config):ActorRef = {
 	 val klass= config("class")
      klass match {
-        case "fileBatchPrefetcher" => asys.actorOf( Props(new fileBatchPrefetcher( config, control ) ), name= System.unique(klass) )
-        case "amqpBatchPrefetcher" => asys.actorOf( Props(new amqpBatchPrefetcher( config, control, amqpConnection._2 ) ), name= System.unique(klass) )
+        case "fileBatchPrefetcher" => asys.actorOf( Props(new fileBatchPrefetcher( config, control ) ) )
+        case "amqpBatchPrefetcher" => asys.actorOf( Props(new amqpBatchPrefetcher( config, control, amqpConnection._2 ) ) )
         case (e:String) => throw (new ClassNotFound(e))
       }
   }
@@ -85,8 +85,8 @@ class Pipeline(config:Config, control:Control, asys:ActorSystem) {
   def  newWriteback(config:Config):ActorRef = {
      val klass= config("class")
      klass match {
-        case "fileBatchWriteback" => asys.actorOf( Props(new fileBatchWriteback( config, control ) ), name= System.unique(klass) )
-        case "amqpBatchWriteback" => asys.actorOf( Props(new amqpBatchWriteback( config, control, amqpConnection._2 ) ), name= System.unique(klass) )
+        case "fileBatchWriteback" => asys.actorOf( Props(new fileBatchWriteback( config, control ) ) )
+        case "amqpBatchWriteback" => asys.actorOf( Props(new amqpBatchWriteback( config, control, amqpConnection._2 ) ) )
         case (e:String) => throw (new ClassNotFound(e))
       }
   }
