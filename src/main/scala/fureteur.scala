@@ -49,6 +49,11 @@ object Fureteur {
     system.start
   }
 
+  def start(config:String) = {
+    val system= new System( Config.fromJson(config) )
+    system.start
+  }
+
 }
 
 
