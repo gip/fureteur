@@ -72,8 +72,8 @@ class amqpBatchWriteback(config: Config, control: Control, chan: Channel) extend
               case _ => "Error" 
             }
         } catch { case _ => "Error" }
-        val fqp= "fetch_routing_prefix"
-        val fullkey = if(x exists fqp) { x(fqp)+key } else { key }
+        val fqp= "fetch_routing_key"
+        val fullkey = if(x exists fqp) { x(fqp)+":"+key } else { key }
         chan.basicPublish(exch, fullkey, MessageProperties.PERSISTENT_TEXT_PLAIN, x.toBytes)
         chan.basicAck(deliveryTag, false)
         log.info("Publishing message to "+exch+" and acking delivery tag "+deliveryTag)
