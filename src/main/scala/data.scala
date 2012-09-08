@@ -26,6 +26,8 @@ class Data(m:Map[String, JValue]) {
 
   def ++(kvs:List[(String, String)]) = new Data( map ++ (kvs.map ( (kv) => (kv._1 -> JString(kv._2)) ) ) )
 
+  def ++!(kvs:List[(String,JValue)]) = new Data( map ++ kvs )
+
   def -(k:String) = new Data( map - k )
 
   def get(s:String):String = {
