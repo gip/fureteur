@@ -16,6 +16,7 @@ import org.apache.http.impl.conn.tsccm._
 import org.apache.http.impl.client._
 import org.apache.http.impl.conn._
 import org.apache.http.conn._
+import org.apache.http.params._ 
 import org.apache.http.conn.params._
 import org.apache.http.client.methods._
 import org.apache.http.client.params._
@@ -44,6 +45,9 @@ class HttpManager(config:Config) {
     cm.setDefaultMaxPerRoute( config.getInt("max_connection_per_route")  );
     val client = new DefaultHttpClient(cm);
     client.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.IGNORE_COOKIES);
+    if(config.exists("user_agent")) {
+      client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, config("user_agent"));
+    }
     val min_interval_ms= config.getInt("min_interval_ms")
 
   def getClient() = {
