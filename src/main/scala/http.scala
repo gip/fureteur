@@ -73,16 +73,7 @@ class HttpFetcher(config: Config,
   var last_fetch_ms= 0L
   val hostname= java.net.InetAddress.getLocalHost.getHostName
   
-
-  def process(d:Data):Data = {
-    var out= List[(String, String)]( ("fetch_version", Version.versionString), ("fetch_format_version", Version.formatVersionString), 
-                                     ("fetch_host", hostname) )
-    var error= "false"
-    var retcode= ""
-    val url= d("fetch_url")
-    val compress= d.getOption("fetch_compress") match { case None | Some("true") => true 
-	                                                    case _ => false }
-	try {
+  def fetch(url:String) = {
       Thread.sleep(interval)
       val t0= Time.msNow
       val get= new HttpGet(url)
@@ -90,28 +81,43 @@ class HttpFetcher(config: Config,
       val res= client.execute(get, ctx)
       val entity= res.getEntity()
       val page= EntityUtils.toByteArray(entity)
-      val zpage= if(compress) Encoding.byteToZippedString64(page) else new String(page)
       val status= res.getStatusLine()
       val code= status.getStatusCode()
-    
       EntityUtils.consume(entity)
       val t1= Time.msNow
-      last_fetch_ms= t1
-      retcode= code.toString
-      out= ("fetch_time", Time.sNow.toString)::
-                 ("fetch_latency", (t1-t0).toString)::
-                 ("fetch_size", page.length.toString)::
-                 ("fetch_status_code", code.toString)::
-                 ("fetch_status_line", status.toString)::
-                 ("fetch_error", "false")::out
-      if(code>=200 && code<300) {
-        out= ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::out
-      }
-    } catch {
-	  case e:Exception => { error="true"; out= ("fetch_error", "true")::("fetch_error_reason", "exception")::out }
-	}
-    log.info("Fetching "+url+", fetch_error "+error+", status code "+retcode)
-	(d - "fetch_compress") ++ out
+      val lat= t1-t0  
+      (status, code, page, lat)
+  }
+
+  def process(d:Data):Data = {
+    val out= List[(String, String)]( ("fetch_version", Version.versionString), ("fetch_format_version", Version.formatVersionString), 
+                                     ("fetch_host", hostname) )
+    val urls= if(d exists "fetch_url") d("fetch_url")::Nil else d("fetch_urls").split(" ").toList
+    val compress= d.getOption("fetch_compress") match { case None | Some("true") => true 
+	                                                      case _ => false }
+    val ress = urls.view.zipWithIndex.map { case (url, i) =>
+	    val res= (try {
+        val (status, code, page, latency)= fetch(url) 
+        val zpage= if(compress) Encoding.byteToZippedString64(page) else new String(page)
+
+        val retcode= code.toString
+        val o= ("fetch_time", Time.sNow.toString)::
+               ("fetch_latency", latency.toString)::
+               ("fetch_size", page.length.toString)::
+               ("fetch_status_code", code.toString)::
+               ("fetch_status_line", status.toString)::
+               ("fetch_error", "false")::Nil
+        log.info("Fetching "+url+", status code "+code.toString)
+        if(code>=200 && code<300) {
+          ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::o
+        } else o
+      } catch {
+	      case e:Exception => ("fetch_error", "true")::("fetch_error_reason", "exception")::Nil
+	    })
+      if(i==0) res else res.map( kv => (kv._1+"_"+i, kv._2) )
+    }
+    val out1= ress.foldLeft(out)( (acc, v) => v++acc )
+	  (d - "fetch_compress") ++ out1
   }                                                                   
 }
 
