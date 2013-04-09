@@ -2,7 +2,9 @@ name := "fureteur"
 
 version := "0.0.2"
 
-crossScalaVersions := Seq("2.9.1")
+crossScalaVersions := Seq("2.10.1")
+
+scalaVersion := "2.10.1"
 
 mainClass := Some("Fureteur")
 
@@ -26,7 +28,7 @@ libraryDependencies <++= scalaVersion { scalaVersion =>
     "org.apache.httpcomponents"    % "httpcore"             % "4.1",
     "org.apache.httpcomponents"    % "httpclient"           % "4.1",
     "com.typesafe.akka"            % "akka-actor"           % "2.0",
-    "net.liftweb"                  % "lift-json_2.9.1"      % "2.4",
+    "net.liftweb"                  % "lift-json_2.10"       % "2.5-M4",
     "com.rabbitmq"                 % "amqp-client"          % "2.7.1"  
   )
 }
