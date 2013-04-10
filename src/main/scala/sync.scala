@@ -7,7 +7,8 @@ package fureteur.sync
 // We are using Akka actors
 import akka.actor._
 import akka.event.Logging
-import akka.util.duration._
+//import akka.util.duration._
+import scala.concurrent.duration._
 
 import fureteur.collection.FIFO
 import fureteur.control.Control

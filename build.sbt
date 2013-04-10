@@ -27,7 +27,7 @@ libraryDependencies <++= scalaVersion { scalaVersion =>
     "junit"                        % "junit"                % "4.8.1"  % "test",
     "org.apache.httpcomponents"    % "httpcore"             % "4.1",
     "org.apache.httpcomponents"    % "httpclient"           % "4.1",
-    "com.typesafe.akka"            % "akka-actor"           % "2.0",
+    "com.typesafe.akka"            % "akka-actor_2.10"      % "2.1.2",
     "net.liftweb"                  % "lift-json_2.10"       % "2.5-M4",
     "com.rabbitmq"                 % "amqp-client"          % "2.7.1"  
   )
