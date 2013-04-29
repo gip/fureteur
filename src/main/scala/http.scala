@@ -79,6 +79,10 @@ class HttpFetcher(config: Config,
       val get= new HttpGet(url)
       val ctx= new BasicHttpContext()  // Can this be re-used?
       val res= client.execute(get, ctx)
+      val currentReq= ctx.getAttribute(ExecutionContext.HTTP_REQUEST).asInstanceOf[HttpUriRequest]
+      val currentHost= ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST).asInstanceOf[HttpHost]
+      val currentUrl = if (currentReq.getURI().isAbsolute()) { currentReq.getURI().toString() } else { (currentHost.toURI() + currentReq.getURI()) }
+      val redirect= if(currentUrl!=url) Some(currentUrl) else None      
       val entity= res.getEntity()
       val page= EntityUtils.toByteArray(entity)
       val status= res.getStatusLine()
@@ -86,7 +90,7 @@ class HttpFetcher(config: Config,
       EntityUtils.consume(entity)
       val t1= Time.msNow
       val lat= t1-t0  
-      (status, code, page, lat)
+      (status, code, page, lat, redirect)
   }
 
   def process(d:Data):Data = {
@@ -97,16 +101,17 @@ class HttpFetcher(config: Config,
 	                                                      case _ => false }
     val ress = urls.view.zipWithIndex.map { case (url, i) =>
 	    val res= (try {
-        val (status, code, page, latency)= fetch(url) 
+        val (status, code, page, latency, redirect)= fetch(url) 
         val zpage= if(compress) Encoding.byteToZippedString64(page) else new String(page)
-
         val retcode= code.toString
-        val o= ("fetch_time", Time.sNow.toString)::
-               ("fetch_latency", latency.toString)::
-               ("fetch_size", page.length.toString)::
-               ("fetch_status_code", code.toString)::
-               ("fetch_status_line", status.toString)::
-               ("fetch_error", "false")::Nil
+        val o0= ("fetch_time", Time.sNow.toString)::
+                ("fetch_latency", latency.toString)::
+                ("fetch_size", page.length.toString)::
+                ("fetch_status_code", code.toString)::
+                ("fetch_status_line", status.toString)::
+                ("fetch_error", "false")::Nil
+        val o = redirect match { case Some(u) => ("fetch_redirect", u)::o0
+                                 case None => o0 }
         log.info("Fetching "+url+", status code "+code.toString)
         if(code>=200 && code<300) {
           ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::o
