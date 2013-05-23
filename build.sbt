@@ -8,6 +8,8 @@ scalaVersion := "2.10.1"
 
 mainClass := Some("Fureteur")
 
+resolvers += "Akka Repository" at "http://repo.akka.io/releases/"
+
 resolvers += "Twitter Repository" at "http://maven.twttr.com"
 
 //seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
@@ -16,7 +18,7 @@ resolvers += "Akka Maven" at "http://akka.io/repository"
 
 resolvers += "Scala Tools Repository" at "http://scala-tools.org/repo-releases"
 
-resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+//resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 
 libraryDependencies <++= scalaVersion { scalaVersion =>
   Seq(
