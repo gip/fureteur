@@ -25,7 +25,13 @@ class System(config:Config) {
   val name= config("instance")
   val control= new PipelineControl(config)
 
-  val pipelines= (config unwrapArray "pipelines") map (new Pipeline(_, control, asys))
+  val pipelines= 
+    if(config exists "proxies") {
+      val proxies= (config unwrapArray "pipelines") map( p => (p("host"), p("port")) )
+      proxies map( pkv =>
+        (config unwrapArray "pipelines") map ( c => new Pipeline(c ++ (("proxy_host", pkv._1) :: ("proxy_port", pkv._2) :: Nil) , control, asys)) ) flatten
+    }
+    else (config unwrapArray "pipelines") map (new Pipeline(_, control, asys))
 
   def start():Unit = {
     pipelines map ( (p) => p.start )

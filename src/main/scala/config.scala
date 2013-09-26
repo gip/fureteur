@@ -16,6 +16,8 @@ class Config(d:Data) {
     data get s
   }
 
+  def ++(kvs:List[(String, String)]) = new Config( data ++ kvs )
+
   def getInt(s:String) = {
     (data get s).toInt
   }
