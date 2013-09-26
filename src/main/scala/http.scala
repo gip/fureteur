@@ -48,6 +48,11 @@ class HttpManager(config:Config) {
     if(config.exists("user_agent")) {
       client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, config("user_agent"));
     }
+    if(config.exists("proxy_host")) {
+      val proxy = if(config.exists("proxy_port")) new HttpHost(config("proxy_host"), config("proxy_port").toInt) else
+                                                  new HttpHost(config("proxy_host"))
+      client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy)
+    }
     val min_interval_ms= config.getInt("min_interval_ms")
 
   def getClient() = {
@@ -73,9 +78,11 @@ class HttpFetcher(config: Config,
   var last_fetch_ms= 0L
   val hostname= java.net.InetAddress.getLocalHost.getHostName
   
-  def fetch(url:String) = {
+  def fetch(url:String, proxy:Option[(String, Int)]) = {
       Thread.sleep(interval)
       val t0= Time.msNow
+      proxy match { case Some((h,p)) => client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(h,p))
+                    case None => () }
       val get= new HttpGet(url)
       val ctx= new BasicHttpContext()  // Can this be re-used?
       val res= client.execute(get, ctx)
@@ -99,9 +106,10 @@ class HttpFetcher(config: Config,
     val urls= if(d exists "fetch_url") d("fetch_url")::Nil else d("fetch_urls").split(" ").toList
     val compress= d.getOption("fetch_compress") match { case None | Some("true") => true 
 	                                                      case _ => false }
+    val proxy=if(d exists "fetch_proxy_host") Some((d("fetch_proxy_host"), if(d exists "fetch_proxy_port") d("fetch_proxy_port").toInt else 80 )) else None
     val ress = urls.view.zipWithIndex.map { case (url, i) =>
 	    val res= (try {
-        val (status, code, page, latency, redirect)= fetch(url) 
+        val (status, code, page, latency, redirect)= fetch(url, proxy) 
         val zpage= if(compress) Encoding.byteToZippedString64(page) else new String(page)
         val retcode= code.toString
         val o0= ("fetch_time", Time.sNow.toString)::
@@ -112,6 +120,7 @@ class HttpFetcher(config: Config,
                 ("fetch_error", "false")::Nil
         val o = redirect match { case Some(u) => ("fetch_redirect", u)::o0
                                  case None => o0 }
+        if(d exists "fetch_proxy_host") log.info("Using proxy "+proxy)
         log.info("Fetching "+url+", status code "+code.toString)
         if(code>=200 && code<300) {
           ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::o
