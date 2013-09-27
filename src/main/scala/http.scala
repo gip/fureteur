@@ -33,7 +33,7 @@ import fureteur.dummyssl._
 import fureteur.config._
 import fureteur.version._
 
-class HttpManager(config:Config) {
+class HttpManager(config:Config, global:Config) {
     val http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
     val ssf = DummySSLScheme.getDummySSLScheme();
     val https = new Scheme("https", 443, ssf);
@@ -48,9 +48,9 @@ class HttpManager(config:Config) {
     if(config.exists("user_agent")) {
       client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, config("user_agent"));
     }
-    if(config.exists("proxy_host")) {
-      val proxy = if(config.exists("proxy_port")) new HttpHost(config("proxy_host"), config("proxy_port").toInt) else
-                                                  new HttpHost(config("proxy_host"))
+    if(global.exists("proxy_host")) {
+      val proxy = if(global.exists("proxy_port")) new HttpHost(global("proxy_host"), global("proxy_port").toInt) else
+                                                  new HttpHost(global("proxy_host"))
       client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy)
     }
     val min_interval_ms= config.getInt("min_interval_ms")

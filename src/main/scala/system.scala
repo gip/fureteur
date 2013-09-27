@@ -63,7 +63,7 @@ class Pipeline(config:Config, control:Control, asys:ActorSystem) {
 
   val writeback= newWriteback(config.getObject("writeback"))
 
-  val httpManager= new HttpManager(config.getObject("httpManager"))
+  val httpManager= new HttpManager(config.getObject("httpManager"), config)
 
   val fetchers= (config unwrapArray "httpFetchers") map ( f => asys.actorOf(Props(new HttpFetcher(f, prefetch, writeback, httpManager )) /*, name= "fetcher"*/ ) )
 
