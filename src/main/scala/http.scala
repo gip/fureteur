@@ -48,11 +48,12 @@ class HttpManager(config:Config, global:Config) {
     if(config.exists("user_agent")) {
       client.getParams().setParameter(CoreProtocolPNames.USER_AGENT, config("user_agent"));
     }
-    if(global.exists("proxy_host")) {
+    val proxys= if(global.exists("proxy_host")) {
       val proxy = if(global.exists("proxy_port")) new HttpHost(global("proxy_host"), global("proxy_port").toInt) else
                                                   new HttpHost(global("proxy_host"))
       client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy)
-    }
+      Some(global("proxy_host"))
+    } else None
     val min_interval_ms= config.getInt("min_interval_ms")
 
   def getClient() = {
@@ -62,6 +63,8 @@ class HttpManager(config:Config, global:Config) {
   def getMinInterval() = {
     min_interval_ms
   }
+
+  def getProxys() = proxys
 }
 
 class HttpFetcher(config: Config,
@@ -121,7 +124,7 @@ class HttpFetcher(config: Config,
         val o = redirect match { case Some(u) => ("fetch_redirect", u)::o0
                                  case None => o0 }
         if(d exists "fetch_proxy_host") log.info("Using proxy "+proxy)
-        log.info("Fetching "+url+", status code "+code.toString)
+        log.info("Fetching "+url+", status code "+code.toString+" (proxy "+manager.getProxys+")")
         if(code>=200 && code<300) {
           ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::o
         } else o
