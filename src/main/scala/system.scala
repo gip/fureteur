@@ -27,7 +27,7 @@ class System(config:Config) {
 
   val pipelines= 
     if(config exists "proxies") {
-      val proxies= (config unwrapArray "pipelines") map( p => (p("host"), p("port")) )
+      val proxies= (config unwrapArray "proxies") map( p => (p("host"), p("port")) )
       proxies map( pkv =>
         (config unwrapArray "pipelines") map ( c => new Pipeline(c ++ (("proxy_host", pkv._1) :: ("proxy_port", pkv._2) :: Nil) , control, asys)) ) flatten
     }
