@@ -110,7 +110,7 @@ class HttpFetcher(config: Config,
     val compress= d.getOption("fetch_compress") match { case None | Some("true") => true 
 	                                                      case _ => false }
     val proxy=if(d exists "fetch_proxy_host") Some((d("fetch_proxy_host"), if(d exists "fetch_proxy_port") d("fetch_proxy_port").toInt else 80 )) else None
-    log.info("Starting fetch for "+urls+(manager.getProxys match { case Some(s)=> " (proxy "+s; case None => "" }))
+    //log.info("Starting fetch for "+urls+(manager.getProxys match { case Some(s)=> " (proxy "+s+")"; case None => "" }))
     val ress = urls.view.zipWithIndex.map { case (url, i) =>
 	    val res= (try {
         val (status, code, page, latency, redirect)= fetch(url, proxy) 
@@ -124,8 +124,10 @@ class HttpFetcher(config: Config,
                 ("fetch_error", "false")::Nil
         val o = redirect match { case Some(u) => ("fetch_redirect", u)::o0
                                  case None => o0 }
-        if(d exists "fetch_proxy_host") log.info("Using proxy "+proxy)
-        log.info("Fetching "+url+", status code "+code.toString+(manager.getProxys match { case Some(s)=> " (proxy "+s; case None => "" }))
+        if(d exists "fetch_proxy_host") log.info("Using proxy "+proxy+")")
+        log.info("Fetching "+url+", status code "+code.toString)
+        manager.getProxys match { case Some(s)=> log.info("         Proxy "+s); case None => () }
+        log.info("         Latency "+latency)
         if(code>=200 && code<300) {
           ("fetch_compress", if(compress) "zip64" else "none")::("fetch_data", zpage)::o
         } else o
