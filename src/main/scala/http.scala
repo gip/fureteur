@@ -81,12 +81,13 @@ class HttpFetcher(config: Config,
   var last_fetch_ms= 0L
   val hostname= java.net.InetAddress.getLocalHost.getHostName
   
-  def fetch(url:String, proxy:Option[(String, Int)]) = {
+  def fetch(url:String, proxy:Option[(String, Int)], headers:List[(String, String)]) = {
       Thread.sleep(interval)
       val t0= Time.msNow
       proxy match { case Some((h,p)) => client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, new HttpHost(h,p))
                     case None => () }
       val get= new HttpGet(url)
+      headers.foreach( kv => get.setHeader(kv._1, kv._2) )
       val ctx= new BasicHttpContext()  // Can this be re-used?
       val res= client.execute(get, ctx)
       val currentReq= ctx.getAttribute(ExecutionContext.HTTP_REQUEST).asInstanceOf[HttpUriRequest]
@@ -111,9 +112,10 @@ class HttpFetcher(config: Config,
 	                                                      case _ => false }
     val proxy=if(d exists "fetch_proxy_host") Some((d("fetch_proxy_host"), if(d exists "fetch_proxy_port") d("fetch_proxy_port").toInt else 80 )) else None
     //log.info("Starting fetch for "+urls+(manager.getProxys match { case Some(s)=> " (proxy "+s+")"; case None => "" }))
+    val headers=if(d exists "fetch_headers") d.unwrapArray("fetch_headers").map( o => (o("field"), o("value")) ) else Nil
     val ress = urls.view.zipWithIndex.map { case (url, i) =>
 	    val res= (try {
-        val (status, code, page, latency, redirect)= fetch(url, proxy) 
+        val (status, code, page, latency, redirect)= fetch(url, proxy, headers) 
         val zpage= if(compress) Encoding.byteToZippedString64(page) else new String(page)
         val retcode= code.toString
         val o0= ("fetch_time", Time.sNow.toString)::
