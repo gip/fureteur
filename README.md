@@ -1,6 +1,9 @@
 Fureteur
 ========
 
+Update: due to scaling issues when using a high number of pipeline, a new high performance fetcher has been developed in Haskell. Please refer to [fetchIO](https://github.com/gip/fetchio) for more information.
+
+
 [Fureteur](https://github.com/gip/fureteur) is a simple, configurable, fault-tolerant http crawler written in scala. The main features are:
 
 * Configurable number of concurrent pipelines; each pipeline may include a configurable number of individual fetchers
