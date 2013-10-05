@@ -70,7 +70,7 @@ class Data(m:Map[String, JValue]) {
   }
 
   def exists(s:String) = {
-    map contains s
+    if(map contains s) map(s)!=JNull else false
   }
 
   def getObject(s:String) = {
