@@ -17,8 +17,8 @@ import fureteur.control.Control
 abstract class Ctrl
 case class StatsReq(handler:List[(String,String)]=>Unit) extends Ctrl // Get stats out of the actor model
 case class Stats(l:List[(String,String)]) extends Ctrl                // Get stats as a message
-case class NoData extends Ctrl
-case class PseudoTimeout extends Ctrl
+case class NoData() extends Ctrl
+case class PseudoTimeout() extends Ctrl
 case class DataReq(req:ActorRef, n:Int) extends Ctrl
 case class DataIn[T](req:ActorRef, e:List[T]) extends Ctrl
 case class DataOut[T](req:ActorRef, e:List[T]) extends Ctrl
